@@ -126,7 +126,7 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
   const apiKey = '90e6da69-c93b-4b35-864b-a422ffb40540';
   const url = `https://api.helius.xyz/v0/addresses/${address}/transactions/?api-key=${apiKey}`;
-  let lastTransactionSignature = null; // Keep track of the latest transaction
+  let lastTransactionSignature = null;
 
   const fetchTransactions = async () => {
     try {
@@ -137,49 +137,34 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
         return bot.sendMessage(chatId, `ℹ️ No recent transactions found for ${address}.`);
       }
 
-      const latestTx = transactions[0]; // Get the latest transaction
-      const latestSignature = latestTx.signature; // Identify transactions uniquely
+      const latestTx = transactions[0];
+      const latestSignature = latestTx.signature;
 
-      // Skip if the transaction is already processed
       if (lastTransactionSignature === latestSignature) return;
 
-      lastTransactionSignature = latestSignature; // Update the last transaction
-
-      // Process the new transaction
-      const blockTime = latestTx.blockTime
-        ? new Date(latestTx.blockTime * 1000).toLocaleString('en-US', { timeZone: 'UTC' })
-        : 'Time not available';
-
-      const utcTime = new Date().toLocaleString('en-US', {
-        timeZone: 'Africa/Lagos', // Adjust to UTC+1
-      });
+      lastTransactionSignature = latestSignature;
 
       const isDeFi = latestTx.instructions.some((instr) =>
         instr?.parsed?.type === 'swap' || instr?.parsed?.info?.program === 'DeFi'
       );
 
-      let tokenName = 'N/A';
-      let tokenAddress = 'N/A';
+      let transactionType = 'Transfer';
       if (isDeFi) {
-        const tokenInfo = latestTx.instructions.find((instr) =>
-          instr?.parsed?.info?.tokenName
-        )?.parsed?.info;
-
-        tokenName = tokenInfo?.tokenName || 'Unknown Token';
-        tokenAddress = tokenInfo?.mint || 'Unknown Address';
+        transactionType = 'DeFi Activity';
+      } else if (latestTx.instructions.some((instr) => instr?.parsed?.type === 'stake')) {
+        transactionType = 'Staking';
       }
 
       const asciiArt = `
 \`\`\`
 +------------------------------------------+
-|               🟢 New TX                 |
+|             🟢 New Transaction           |
 +------------------------------------------+
-|  🕒 Block Time (UTC): ${blockTime}        |
-|  🕒 Current Time (UTC+1): ${utcTime}      |
+|  🔑 TX Hash: ${latestSignature.slice(0, 24)}...   |
 |------------------------------------------|
-|  ${isDeFi ? `🚨 DeFi Activity Detected!` : `Regular Transaction`}     |
-${isDeFi ? `|  💠 Token: ${tokenName}                         |` : ''}
-${isDeFi ? `|  📄 Contract: ${tokenAddress}       |` : ''}
+|  💡 Type: ${transactionType}             |
+|------------------------------------------|
+|  🌐 Address: ${address.slice(0, 16)}...  |
 +------------------------------------------+
 \`\`\`
       `;
@@ -201,7 +186,6 @@ ${isDeFi ? `|  📄 Contract: ${tokenAddress}       |` : ''}
     }
   };
 
-  // Fetch transactions every 30 seconds
   setInterval(fetchTransactions, 30000);
   fetchTransactions();
 });
