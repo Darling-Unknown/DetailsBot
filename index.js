@@ -182,7 +182,7 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
         },
       };
 
-      const imagePath = path.resolve(__dirname, '1726064711020.jpg');
+      const imagePath = path.resolve(__dirname, '1726064711020_1.jpg');
       if (fs.existsSync(imagePath)) {
         await bot.sendPhoto(chatId, imagePath, {
           caption: asciiArt,
