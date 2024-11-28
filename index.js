@@ -126,8 +126,7 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
   }
 
   const apiKey = '90e6da69-c93b-4b35-864b-a422ffb40540';
-  const url = `https://api.helius.dev/v0/addresses/${address}/transactions?api-key=${apiKey}`;
-
+ const url = `https://api.helius.xyz/v0/addresses/${address}/transactions?api-key=${apiKey}`;
   const fetchTransactions = async () => {
     try {
       const response = await axios.get(url);
