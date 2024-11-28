@@ -126,6 +126,7 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
   const apiKey = '90e6da69-c93b-4b35-864b-a422ffb40540';
   const url = `https://api.helius.xyz/v0/addresses/${address}/transactions/?api-key=${apiKey}`;
+  let lastTransactionSignature = null; // Keep track of the latest transaction
 
   const fetchTransactions = async () => {
     try {
@@ -136,13 +137,23 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
         return bot.sendMessage(chatId, `ℹ️ No recent transactions found for ${address}.`);
       }
 
-      // Fetch the latest transaction
-      const latestTx = transactions[0];
+      const latestTx = transactions[0]; // Get the latest transaction
+      const latestSignature = latestTx.signature; // Identify transactions uniquely
+
+      // Skip if the transaction is already processed
+      if (lastTransactionSignature === latestSignature) return;
+
+      lastTransactionSignature = latestSignature; // Update the last transaction
+
+      // Process the new transaction
       const blockTime = latestTx.blockTime
-        ? new Date(latestTx.blockTime * 1000).toLocaleString()
+        ? new Date(latestTx.blockTime * 1000).toLocaleString('en-US', { timeZone: 'UTC' })
         : 'Time not available';
 
-      // Check for DeFi activity
+      const utcTime = new Date().toLocaleString('en-US', {
+        timeZone: 'Africa/Lagos', // Adjust to UTC+1
+      });
+
       const isDeFi = latestTx.instructions.some((instr) =>
         instr?.parsed?.type === 'swap' || instr?.parsed?.info?.program === 'DeFi'
       );
@@ -158,13 +169,13 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
         tokenAddress = tokenInfo?.mint || 'Unknown Address';
       }
 
-      // Create ASCII Art with token details for DeFi or regular
       const asciiArt = `
 \`\`\`
 +------------------------------------------+
-|               🟢 Latest TX               |
+|               🟢 New TX                 |
 +------------------------------------------+
-|  🕒 Time: ${blockTime}              |
+|  🕒 Block Time (UTC): ${blockTime}        |
+|  🕒 Current Time (UTC+1): ${utcTime}      |
 |------------------------------------------|
 |  ${isDeFi ? `🚨 DeFi Activity Detected!` : `Regular Transaction`}     |
 ${isDeFi ? `|  💠 Token: ${tokenName}                         |` : ''}
@@ -173,9 +184,7 @@ ${isDeFi ? `|  📄 Contract: ${tokenAddress}       |` : ''}
 \`\`\`
       `;
 
-      // Create view link
-      const txLink = `https://solscan.io/tx/${latestTx.signature}`;
-
+      const txLink = `https://solscan.io/tx/${latestSignature}`;
       const options = {
         parse_mode: 'HTML',
         reply_markup: {
@@ -185,7 +194,6 @@ ${isDeFi ? `|  📄 Contract: ${tokenAddress}       |` : ''}
         },
       };
 
-      // Send the formatted message
       bot.sendMessage(chatId, asciiArt, options);
     } catch (error) {
       console.error('Error fetching transactions:', error.message);
