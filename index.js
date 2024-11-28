@@ -138,7 +138,9 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
       // Fetch the latest transaction
       const latestTx = transactions[0];
-      const time = new Date(latestTx.blockTime * 1000).toLocaleString();
+      const blockTime = latestTx.blockTime
+        ? new Date(latestTx.blockTime * 1000).toLocaleString()
+        : 'Time not available';
 
       // Check for DeFi activity
       const isDeFi = latestTx.instructions.some((instr) =>
@@ -162,7 +164,7 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 +------------------------------------------+
 |               🟢 Latest TX               |
 +------------------------------------------+
-|  🕒 Time: ${time}                    |
+|  🕒 Time: ${blockTime}              |
 |------------------------------------------|
 |  ${isDeFi ? `🚨 DeFi Activity Detected!` : `Regular Transaction`}     |
 ${isDeFi ? `|  💠 Token: ${tokenName}                         |` : ''}
@@ -195,7 +197,6 @@ ${isDeFi ? `|  📄 Contract: ${tokenAddress}       |` : ''}
   setInterval(fetchTransactions, 30000);
   fetchTransactions();
 });
-
 // Webhook endpoint
 app.post(`/bot${botToken}`, (req, res) => {
   bot.processUpdate(req.body);
