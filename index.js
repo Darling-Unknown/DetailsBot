@@ -17,7 +17,7 @@ const client = wrapper(axios.create({ jar: cookieJar }));
 // Replace with your bot token
 const botToken = '7673269679:AAF99Sf_fEkkhlJEaj-wAQJAyqT5LtJ764s';
 const bot = new TelegramBot(botToken);
-const webhookurl = `https://89ce28fe-1f50-4d5e-a26f-e57c05520248-00-124d9eeybk6zr.kirk.replit.dev/bot${botToken}`;
+const webhookurl = `https://tokeninformation-yrv96gzw.b4a.run//bot${botToken}`;
 bot.setWebHook(webhookurl);
 
 let trackedAddresses = [];
