@@ -31,8 +31,8 @@ async function getTokenDetails(tokenAddress) {
       `https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`,
       {
         headers: {
-          'User-Agent': 'DarlingtonBot/1.0', // A custom User-Agent to identify your bot
-          'Accept': 'application/json', // Ensure the API knows you want JSON data
+          'User-Agent': 'DarlingtonBot/1.0',
+          'Accept': 'application/json',
         },
       }
     );
@@ -45,9 +45,7 @@ async function getTokenDetails(tokenAddress) {
 
 // Function to format token details into a large ASCII card
 function createAsciiCard(tokenData) {
-  const primaryPair = tokenData.pairs[0]; // Assuming the first pair is the most relevant
-
-  // Prepare a large ASCII art card with token details
+  const primaryPair = tokenData.pairs[0];
   let card = '+------------------------------------------+\n';
   card += '|             Darlington🤖               |\n';
   card += '|------------------------------------------|\n';
@@ -60,7 +58,6 @@ function createAsciiCard(tokenData) {
   card += '|               Contact: 9035751502 👀      |\n';
   card += '+------------------------------------------+\n';
 
-  // Add latest transactions if available
   if (primaryPair.txns?.h24?.buys && primaryPair.txns?.h24?.sells) {
     card += `\n    🔔 Latest Transactions:\n`;
     card += `    💚 Buys: ${primaryPair.txns.h24.buys}\n`;
@@ -77,27 +74,22 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const tokenAddress = match[1].trim();
 
-  // Clear previous interval to avoid duplication
   if (updateInterval) clearInterval(updateInterval);
 
   const updateMessage = async () => {
     try {
-      // Delete the previous message if it exists
       if (tokenMessageId) {
         await bot.deleteMessage(chatId, tokenMessageId).catch(() => {});
       }
 
-      // Fetch token details
       const tokenData = await getTokenDetails(tokenAddress);
 
       if (!tokenData || !tokenData.pairs || tokenData.pairs.length === 0) {
         throw new Error('No data found for the provided token.');
       }
 
-      // Generate the ASCII card
       const asciiCard = createAsciiCard(tokenData);
 
-      // Send the ASCII card message
       const options = {
         parse_mode: 'HTML',
         reply_markup: {
@@ -120,9 +112,49 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
     }
   };
 
-  // Update the message every 20 seconds
   updateInterval = setInterval(updateMessage, 20000);
-  updateMessage(); // Call immediately
+  updateMessage();
+});
+
+// Command to track Solana transactions
+bot.onText(/\/track (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const address = match[1].trim();
+
+  if (!/^.{32,44}$/.test(address)) {
+    return bot.sendMessage(chatId, '❌ Invalid Solana address.');
+  }
+
+  const apiKey = '90e6da69-c93b-4b35-864b-a422ffb40540';
+  const url = `https://api.helius.dev/v0/addresses/${address}/transactions?api-key=${apiKey}`;
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await axios.get(url);
+      const transactions = response.data;
+
+      if (!transactions || transactions.length === 0) {
+        return bot.sendMessage(chatId, `ℹ️ No recent transactions found for ${address}.`);
+      }
+
+      const latestTx = transactions[0];
+      const message = `
+      🔔 Latest Transaction:
+      🏷️ Signature: ${latestTx.signature}
+      📩 To: ${latestTx.instructions[0]?.parsed?.info?.destination || 'N/A'}
+      💸 Amount: ${latestTx.instructions[0]?.parsed?.info?.amount || 'N/A'} SOL
+      🕒 Time: ${new Date(latestTx.blockTime * 1000).toLocaleString()}
+      `;
+
+      bot.sendMessage(chatId, message);
+    } catch (error) {
+      console.error('Error fetching transactions:', error.message);
+      bot.sendMessage(chatId, '❌ Failed to fetch transaction details.');
+    }
+  };
+
+  setInterval(fetchTransactions, 30000);
+  fetchTransactions();
 });
 
 // Webhook endpoint
