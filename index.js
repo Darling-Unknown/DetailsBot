@@ -5,6 +5,9 @@ const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
+const fs = require('fs');
+const path = require('path');
+
 
 // Initialize express app
 const app = express();
@@ -157,15 +160,15 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
       const asciiArt = `
 \`\`\`
-+------------------------------------------+
-|             🟢 New Transaction           |
-+------------------------------------------+
-|  🔑 TX Hash: ${latestSignature.slice(0, 24)}...   |
-|------------------------------------------|
-|  💡 Type: ${transactionType}             |
-|------------------------------------------|
-|  🌐 Address: ${address.slice(0, 16)}...  |
-+------------------------------------------+
++--------------------------------------+
+|         🟢 New Transaction           |
++--------------------------------------+
+|  🔑 TX Hash: ${latestSignature.slice(0, 20)}... |
+|--------------------------------------|
+|  💡 Type: ${transactionType}         |
+|--------------------------------------|
+|  🌐 Address: ${address.slice(0, 16)}... |
++--------------------------------------+
 \`\`\`
       `;
 
@@ -179,7 +182,17 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
         },
       };
 
-      bot.sendMessage(chatId, asciiArt, options);
+      const imagePath = path.resolve(__dirname, 'gr.jpg');
+      if (fs.existsSync(imagePath)) {
+        await bot.sendPhoto(chatId, imagePath, {
+          caption: asciiArt,
+          parse_mode: 'Markdown',
+          reply_markup: options.reply_markup,
+        });
+      } else {
+        console.error('Image not found. Ensure gr.jpg exists in the script directory.');
+        bot.sendMessage(chatId, asciiArt, options);
+      }
     } catch (error) {
       console.error('Error fetching transactions:', error.message);
       bot.sendMessage(chatId, '❌ Failed to fetch transaction details.');
