@@ -1,3 +1,4 @@
+
 // Import the necessary libraries
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -117,47 +118,6 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
 
   updateInterval = setInterval(updateMessage, 20000);
   updateMessage();
-});
-
-
-
-bot.onText(/\/latestbuy (.+)/, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const address = match[1].trim();
-
-  try {
-    const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
-    const tokenData = response.data;
-
-    if (!tokenData || !tokenData.pairs || tokenData.pairs.length === 0) {
-      bot.sendMessage(chatId, '❌ No data found for the specified token.');
-      return;
-    }
-
-    const latestBuy = tokenData.pairs[0].txns?.h24?.buys?.[0]; // Get the first/latest buy transaction
-
-    if (!latestBuy) {
-      bot.sendMessage(chatId, '❌ No buy transactions found for the specified token.');
-      return;
-    }
-
-    const asciiArt = `
-\`\`\`
-+----------------------------+
-|   Latest Buy Transaction   |
-+----------------------------+
-|  Token: ${tokenData.pairs[0].baseToken.name || 'N/A'} (${tokenData.pairs[0].baseToken.symbol || 'N/A'})
-|  Amount: ${latestBuy.amount || 'N/A'}
-|  Buyer: ${latestBuy.address || 'N/A'}
-+----------------------------+
-\`\`\`
-    `;
-
-    bot.sendMessage(chatId, asciiArt, { parse_mode: 'Markdown' });
-  } catch (error) {
-    console.error('Error fetching transaction:', error.message);
-    bot.sendMessage(chatId, '❌ Failed to fetch the latest buy transaction.');
-  }
 });
 
 bot.onText(/\/track (.+)/, async (msg, match) => {
