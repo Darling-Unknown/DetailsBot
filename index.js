@@ -148,15 +148,13 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
       lastTransactionSignature = latestSignature;
 
-      // Check if the transaction involves any known DeFi swap programs
       const isDeFi = latestTx.instructions.some((instr) =>
-        instr?.parsed?.type === 'swap' || 
-        ['serum', 'raydium', 'orca', 'saber', 'marinade'].includes(instr?.parsed?.info?.program)
+        instr?.parsed?.type === 'swap' || instr?.parsed?.info?.program === 'DeFi'
       );
 
       let transactionType = 'Transfer';
       if (isDeFi) {
-        transactionType = 'DeFi Activity (Swap)';
+        transactionType = 'DeFi Activity';
       } else if (latestTx.instructions.some((instr) => instr?.parsed?.type === 'stake')) {
         transactionType = 'Staking';
       }
@@ -166,11 +164,11 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 +--------------------------------------+
 |         🟢 New Transaction           |
 +--------------------------------------+
-|  🔑 TX Hash: ${latestSignature.slice(0, 20)}.|
+|  🔑 TX Hash: ${latestSignature.slice(0, 20)}... |
 |--------------------------------------|
 |  💡 Type: ${transactionType}         |
 |--------------------------------------|
-|  🌐 Address: ${address.slice(0, 16)}.........|
+|  🌐 Address: ${address.slice(0, 16)}... |
 +--------------------------------------+
 \`\`\`
       `;
