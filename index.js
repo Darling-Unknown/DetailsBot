@@ -8,7 +8,6 @@ const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
 const fs = require('fs');
 const path = require('path');
-const moment = require('moment'); // Add this at the top of your script to use the moment library.
 
 
 // Initialize express app
@@ -121,7 +120,6 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
   updateMessage();
 });
 
-
 bot.onText(/\/track (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const address = match[1].trim();
@@ -161,13 +159,10 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
         transactionType = 'Staking';
       }
 
-      const timeAgo = moment(latestTx.blockTime * 1000).fromNow(); // Convert blockTime to "time ago"
-
       const asciiArt = `
 \`\`\`
 +--------------------------------------+
 |         🟢 New Transaction           |
-|${timeAgo}                            |
 +--------------------------------------+
 |  🔑 TX Hash: ${latestSignature.slice(0, 20)}... |
 |--------------------------------------|
@@ -204,6 +199,7 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
       bot.sendMessage(chatId, '❌ Failed to fetch transaction details.');
     }
   };
+
   setInterval(fetchTransactions, 30000);
   fetchTransactions();
 });
