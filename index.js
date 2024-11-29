@@ -119,32 +119,36 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
   updateMessage();
 });
 
-// Command to fetch the latest buy transaction for a user's token
-bot.onText(/\/latestbuy/, async (msg) => {
-  const chatId = msg.chat.id;
- const tokenAddress = match[1].trim();
 
-  if (!tokenAddress) {
-    return bot.sendMessage(chatId, '❌ No token registered. Use /registertoken <token_address> to register a token.');
-  }
+
+bot.onText(/\/latestbuy (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const tokenAddress = match[1].trim();
 
   try {
     const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
     const tokenData = response.data;
 
     if (!tokenData || !tokenData.pairs || tokenData.pairs.length === 0) {
-      throw new Error('No data found for the registered token.');
+      bot.sendMessage(chatId, '❌ No data found for the specified token.');
+      return;
     }
 
-    const latestBuy = tokenData.pairs[0].txns?.h24?.buys;
+    const latestBuy = tokenData.pairs[0].txns?.h24?.buys?.[0]; // Get the first/latest buy transaction
+
+    if (!latestBuy) {
+      bot.sendMessage(chatId, '❌ No buy transactions found for the specified token.');
+      return;
+    }
+
     const asciiArt = `
 \`\`\`
 +----------------------------+
 |   Latest Buy Transaction   |
 +----------------------------+
-|  Token: ${tokenData.pairs[0].baseToken.name || 'N/A'} |
-|  Amount: ${latestBuy.amount || 'N/A'}                |
-|  Buyer: ${latestBuy.address || 'N/A'}               |
+|  Token: ${tokenData.pairs[0].baseToken.name || 'N/A'} (${tokenData.pairs[0].baseToken.symbol || 'N/A'})
+|  Amount: ${latestBuy.amount || 'N/A'}
+|  Buyer: ${latestBuy.address || 'N/A'}
 +----------------------------+
 \`\`\`
     `;
