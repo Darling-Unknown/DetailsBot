@@ -119,6 +119,43 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
   updateMessage();
 });
 
+// Command to fetch the latest buy transaction for a user's token
+bot.onText(/\/latestbuy/, async (msg) => {
+  const chatId = msg.chat.id;
+  const tokenAddress = userTokens[chatId];
+
+  if (!tokenAddress) {
+    return bot.sendMessage(chatId, '❌ No token registered. Use /registertoken <token_address> to register a token.');
+  }
+
+  try {
+    const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
+    const tokenData = response.data;
+
+    if (!tokenData || !tokenData.pairs || tokenData.pairs.length === 0) {
+      throw new Error('No data found for the registered token.');
+    }
+
+    const latestBuy = tokenData.pairs[0].txns?.h24?.buys;
+    const asciiArt = `
+\`\`\`
++----------------------------+
+|   Latest Buy Transaction   |
++----------------------------+
+|  Token: ${tokenData.pairs[0].baseToken.name || 'N/A'} |
+|  Amount: ${latestBuy.amount || 'N/A'}                |
+|  Buyer: ${latestBuy.address || 'N/A'}               |
++----------------------------+
+\`\`\`
+    `;
+
+    bot.sendMessage(chatId, asciiArt, { parse_mode: 'Markdown' });
+  } catch (error) {
+    console.error('Error fetching transaction:', error.message);
+    bot.sendMessage(chatId, '❌ Failed to fetch the latest buy transaction.');
+  }
+});
+
 bot.onText(/\/track (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const address = match[1].trim();
