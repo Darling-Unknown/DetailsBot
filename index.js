@@ -131,19 +131,23 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
   const apiKey = '90e6da69-c93b-4b35-864b-a422ffb40540';
   const url = `https://api.helius.xyz/v0/addresses/${address}/transactions/?api-key=${apiKey}`;
   let lastTransactionSignature = null;
+  let lastMessageId = null;
 
+  // Function to fetch and process transactions
   const fetchTransactions = async () => {
     try {
       const response = await axios.get(url);
       const transactions = response.data;
 
       if (!transactions || transactions.length === 0) {
-        return bot.sendMessage(chatId, `ℹ️ No recent transactions found for ${address}.`);
+        console.log(`No recent transactions for address: ${address}`);
+        return;
       }
 
       const latestTx = transactions[0];
       const latestSignature = latestTx.signature;
 
+      // Skip if the latest transaction hasn't changed
       if (lastTransactionSignature === latestSignature) return;
 
       lastTransactionSignature = latestSignature;
@@ -183,24 +187,29 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
         },
       };
 
-      const imagePath = path.resolve(__dirname, '1726064711020_1.jpg');
-      if (fs.existsSync(imagePath)) {
-        await bot.sendPhoto(chatId, imagePath, {
-          caption: asciiArt,
-          parse_mode: 'Markdown',
-          reply_markup: options.reply_markup,
-        });
-      } else {
-        console.error('Image not found. Ensure gr.jpg exists in the script directory.');
-        bot.sendMessage(chatId, asciiArt, options);
+      // Delete the last message if it exists
+      if (lastMessageId) {
+        await bot.deleteMessage(chatId, lastMessageId).catch((err) =>
+          console.error('Error deleting previous message:', err.message)
+        );
       }
+
+      // Send a new message
+      const sentMessage = await bot.sendMessage(chatId, asciiArt, options);
+      lastMessageId = sentMessage.message_id;
     } catch (error) {
       console.error('Error fetching transactions:', error.message);
       bot.sendMessage(chatId, '❌ Failed to fetch transaction details.');
     }
   };
 
-  setInterval(fetchTransactions, 30000);
+  // Clear any existing interval for this chat and address
+  if (trackedAddresses[chatId]) {
+    clearInterval(trackedAddresses[chatId]);
+  }
+
+  // Start a new interval for this address
+  trackedAddresses[chatId] = setInterval(fetchTransactions, 30000);
   fetchTransactions();
 });
 // Webhook endpoint
