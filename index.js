@@ -122,7 +122,7 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
 // Command to fetch the latest buy transaction for a user's token
 bot.onText(/\/latestbuy/, async (msg) => {
   const chatId = msg.chat.id;
-  const tokenAddress = userTokens[chatId];
+ const tokenAddress = match[1].trim();
 
   if (!tokenAddress) {
     return bot.sendMessage(chatId, '❌ No token registered. Use /registertoken <token_address> to register a token.');
