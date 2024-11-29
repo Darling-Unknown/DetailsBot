@@ -120,12 +120,32 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
   updateMessage();
 });
 
+// Function to format timestamp in a human-readable format
+function formatTimestamp(timestamp) {
+  const now = new Date();
+  const transactionTime = new Date(timestamp * 1000); // Assuming timestamp is in seconds
+  const timeDifference = now - transactionTime;
+  
+  // Calculate the difference in minutes and seconds
+  const minutes = Math.floor(timeDifference / 60000);
+  const seconds = Math.floor((timeDifference % 60000) / 1000);
+  
+  if (minutes > 0) {
+    return `${minutes} minutes ago`;
+  } else if (seconds > 0) {
+    return `${seconds} seconds ago`;
+  } else {
+    return 'Just now';
+  }
+}
+
+// Function to send the transaction details along with timestamp
 bot.onText(/\/track (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const address = match[1].trim();
 
   if (!/^.{32,44}$/.test(address)) {
-    return bot.sendMessage(chatId, '❌ Invalid Solana address.');
+    return bot.sendMessage(chatId, '❌ Invalid address.');
   }
 
   const apiKey = '90e6da69-c93b-4b35-864b-a422ffb40540';
@@ -148,6 +168,7 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 
       lastTransactionSignature = latestSignature;
 
+      // Calculate the transaction type
       const isDeFi = latestTx.instructions.some((instr) =>
         instr?.parsed?.type === 'swap' || instr?.parsed?.info?.program === 'DeFi'
       );
@@ -159,6 +180,8 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
         transactionType = 'Staking';
       }
 
+      const timestamp = latestTx.blockTime; // Assuming the timestamp is in seconds
+
       const asciiArt = `
 \`\`\`
 +--------------------------------------+
@@ -169,6 +192,8 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
 |  💡 Type: ${transactionType}         |
 |--------------------------------------|
 |  🌐 Address: ${address.slice(0, 16)}... |
+|--------------------------------------|
+|  ⏰ Sent: ${formatTimestamp(timestamp)} |
 +--------------------------------------+
 \`\`\`
       `;
