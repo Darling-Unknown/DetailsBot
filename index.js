@@ -8,6 +8,7 @@ const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
 const fs = require('fs');
 const path = require('path');
+const moment = require('moment'); // Add this at the top of your script to use the moment library.
 
 
 // Initialize express app
@@ -120,7 +121,6 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
   updateMessage();
 });
 
-const moment = require('moment'); // Add this at the top of your script to use the moment library.
 
 bot.onText(/\/track (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
