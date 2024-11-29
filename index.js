@@ -123,10 +123,10 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
 
 bot.onText(/\/latestbuy (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
-  const tokenAddress = match[1].trim();
+  const address = match[1].trim();
 
   try {
-    const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`);
+    const response = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
     const tokenData = response.data;
 
     if (!tokenData || !tokenData.pairs || tokenData.pairs.length === 0) {
