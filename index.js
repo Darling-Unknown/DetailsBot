@@ -231,6 +231,7 @@ async function getSolBalance(address) {
     console.error('Error fetching Sol balance:', error.message);
     return 0;
   }
+}
 
 // Function to fetch the current SOL to USDT price from CoinGecko
 async function getSolToUsdtPrice() {
