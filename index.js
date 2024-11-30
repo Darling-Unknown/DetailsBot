@@ -268,19 +268,20 @@ bot.onText(/\/team/, async (msg) => {
     // Team share calculations (divide the Sol balance by 4)
     const solPerMemberInUsdt = solBalanceInUsdt / 4;
 
-    // Build the team information message
-    let message = '🎮 ....... Team Name ....... 🎮\n';
+    // Build the team informontion message
+    let message = '               5T DEGEN®          \n';
     message += '────────────────────────────────\n';
     message += `📍 **Address**: ${address}\n`;
     message += `💰 **Sol Balance**: ${solBalance.toFixed(2)} SOL 💵 **($${solBalanceInUsdt.toFixed(2)} USDT)**\n`;
+    message += '────────────────────────────────\n';
     message += `💎 **Tokens in possession**: 👍\n`;
     message += '────────────────────────────────\n';
     message += '👥 **Team Members:**\n';
-    message += '────────────────────────────────\n';
-    message += `1️⃣ **Stephen**           💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `2️⃣ **Unknown Web**      💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `3️⃣ **Marvelous**        💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `4️⃣ **Chidiogo**         💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
+    message += '\n';
+    message += `1️⃣ **Stephen**           💵 $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
+    message += `2️⃣ **Unknown Web**      💵 $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
+    message += `3️⃣ **Marvelous**        💵 $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
+    message += `4️⃣ **Chidiogo**         💵  $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
     message += '────────────────────────────────\n';
 
     // Calculate 24-hour percentage change (replace with actual data fetching logic)
