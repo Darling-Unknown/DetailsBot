@@ -231,20 +231,32 @@ async function getSolBalance(address) {
     console.error('Error fetching Sol balance:', error.message);
     return 0;
   }
-}
 
-// Function to fetch the current SOL to USDT price from Dexscreener
+// Function to fetch the current SOL to USDT price from CoinGecko
 async function getSolToUsdtPrice() {
-  const url = 'https://api.dexscreener.com/latest/dex/pairs/sol/usdt'; // Example API endpoint
+  const url = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd'; // CoinGecko endpoint for SOL to USD
+  
   try {
     const response = await axios.get(url);
-    return response.data.pair.priceUsd; // Get SOL price in USDT
+    return response.data.solana.usd; // Get SOL price in USD (USDT is pegged 1:1 with USD)
   } catch (error) {
     console.error('Error fetching SOL to USDT price:', error.message);
-    return 0;
+    return 0; // Return 0 if there's an error
   }
 }
 
+// Example usage of the function
+async function example() {
+  const solToUsdtPrice = await getSolToUsdtPrice();
+  if (solToUsdtPrice === 0) {
+    console.log('Failed to fetch SOL price.');
+  } else {
+    console.log(`Current SOL price in USDT: $${solToUsdtPrice}`);
+  }
+}
+
+// Call the example function
+example();
 // Command to fetch team information
 bot.onText(/\/team/, async (msg) => {
   const chatId = msg.chat.id;
