@@ -245,16 +245,6 @@ async function getSolToUsdtPrice() {
     return 0; // Return 0 if there's an error
   }
 } 
-// Define the initial balance
-const initialBalance = 12; // $12
-
-// Calculate the percentage profit or loss
-const percentageChange = ((solBalanceInUsdt - initialBalance) / initialBalance) * 100;
-
-// Format the percentage change with the appropriate symbol (profit or loss)
-const formattedPercentageChange = percentageChange >= 0 
-    ? `🟩 +${percentageChange.toFixed(2)}%` 
-    : `🟥 ${percentageChange.toFixed(2)}%`;
 
 
 // Command to fetch team information
@@ -276,6 +266,17 @@ bot.onText(/\/team/, async (msg) => {
 
     // Convert Sol balance to USDT
     const solBalanceInUsdt = solBalance * solToUsdtPrice;
+    // Define the initial balance
+const initialBalance = 12; // $12
+
+// Calculate the percentage profit or loss
+const percentageChange = ((solBalanceInUsdt - initialBalance) / initialBalance) * 100;
+
+// Format the percentage change with the appropriate symbol (profit or loss)
+const formattedPercentageChange = percentageChange >= 0 
+    ? `🟩 +${percentageChange.toFixed(2)}%` 
+    : `🟥 ${percentageChange.toFixed(2)}%`;
+
 
     // Team share calculations (divide the Sol balance by 4)
     const solPerMemberInUsdt = solBalanceInUsdt / 4;
