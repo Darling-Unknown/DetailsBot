@@ -245,6 +245,44 @@ async function getSolToUsdtPrice() {
     return 0; // Return 0 if there's an error
   }
 } 
+// Function to fetch token balances and contract addresses from a Solana wallet
+async function getSolanaTokenBalances(address) {
+  const solanaUrl = 'https://api.mainnet-beta.solana.com';
+  const data = {
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'getTokenAccountsByOwner',
+    params: [address, { programId: 'TokenkegQfeZyiNwAJbN6HTJp9FEg72QWe1fcmg5dFw8' }, { encoding: 'jsonParsed' }],
+  };
+
+  try {
+    const response = await axios.post(solanaUrl, data);
+    return response.data.result.map(account => ({
+      tokenAmount: account.account.data.parsed.info.tokenAmount.uiAmount,
+      tokenAddress: account.account.data.parsed.info.mint,
+    }));
+  } catch (error) {
+    console.error('Error fetching token balances:', error.message);
+    return [];
+  }
+}
+// Function to fetch token information from Dexscreener using the contract address
+async function getTokenInfoFromDexscreener(contractAddress) {
+  const url = `https://api.dexscreener.com/latest/dex/tokens/${contractAddress}`;
+
+  try {
+    const response = await axios.get(url);
+    const tokenData = response.data.pair;
+    return {
+      name: tokenData.baseToken.symbol,
+      price: tokenData.priceUsd,
+      marketCap: tokenData.marketCapUsd,
+    };
+  } catch (error) {
+    console.error('Error fetching token info from Dexscreener:', error.message);
+    return null;
+  }
+}
 
 
 // Command to fetch team information
@@ -277,7 +315,19 @@ const formattedPercentageChange = percentageChange >= 0
     ? `🟩 +${percentageChange.toFixed(2)}%` 
     : `🟥 ${percentageChange.toFixed(2)}%`;
 
+// Get token balances and their contract addresses
+    const tokens = await getSolanaTokenBalances(address);
 
+    let tokensInfo = '';
+    for (let token of tokens) {
+      // Get token details from Dexscreener using the contract address
+      const tokenInfo = await getTokenInfoFromDexscreener(token.tokenAddress);
+
+      if (tokenInfo) {
+        const tokenWorth = (token.tokenAmount * tokenInfo.price).toFixed(2);
+        tokensInfo += `🔹 **${tokenInfo.name}** (${token.tokenAmount} tokens) 🪙 Worth: $${tokenWorth} 📉 Price: $${tokenInfo.price} 📊 Market Cap: $${tokenInfo.marketCap}\n`;
+      }
+    }
     // Team share calculations (divide the Sol balance by 4)
     const solPerMemberInUsdt = solBalanceInUsdt / 4;
 
@@ -287,7 +337,8 @@ const formattedPercentageChange = percentageChange >= 0
     message += `📍 **Address**: ${address}\n`;
     message += `💰 **Sol Balance**: ${solBalance.toFixed(2)} SOL 💵 **($${solBalanceInUsdt.toFixed(2)} USDT)**\n`;
     message += '────────────────────────────────\n';
-    message += `💎 **Tokens in possession**: 👍\n`;
+    message += `💎 **Tokens in possession**: 👍\n`
+    message +=  `${tokensInfo}\n`;
     message += '────────────────────────────────\n';
     message += '👥 **Team Members:**\n';
     message += '\n';
