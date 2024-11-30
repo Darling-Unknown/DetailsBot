@@ -177,13 +177,26 @@ bot.on("callback_query", async (query) => {
   }
 });
 
+
+// Helis API function to fetch wallet data
+async function fetchSolanaWalletData(walletAddress) {
+  const apiUrl = `https://api.helis.dev/v1/solana/address/${walletAddress}`;
+  try {
+    const response = await axios.get(apiUrl);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching wallet data:", error.message);
+    throw new Error("Failed to fetch wallet information.");
+  }
+}
+
 // Step 2: Connect Wallet and Fetch Balance
 bot.onText(/\/g (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const walletAddress = match[1].trim();
 
   if (!walletAddress) {
-    return bot.sendMessage(chatId, "❌ Please provide a valid wallet address.");
+    return bot.sendMessage(chatId, "❌ Please provide a valid Solana wallet address.");
   }
 
   // Save wallet address for the group
@@ -193,40 +206,39 @@ bot.onText(/\/g (.+)/, async (msg, match) => {
     walletAddress,
   };
 
-  bot.sendMessage(chatId, "Processing wallet information...");
+  bot.sendMessage(chatId, "🔍 Fetching wallet information...");
 
   try {
-    // Fetch token details using the Dexscreener API
-    const tokenData = await getTokenDetails(walletAddress);
+    // Fetch wallet data using Helis API
+    const walletData = await fetchSolanaWalletData(walletAddress);
 
-    if (!tokenData || !tokenData.pairs || tokenData.pairs.length === 0) {
+    if (!walletData || !walletData.balances || walletData.balances.length === 0) {
       throw new Error("No data found for the provided wallet.");
     }
 
     // Extract balance and calculate individual shares
-    const primaryPair = tokenData.pairs[0];
-    const totalBalance = parseFloat(primaryPair.priceUsd || "0").toFixed(2);
+    const totalBalance = walletData.nativeBalance / 1e9; // Convert lamports to SOL
     const { userIds, memberCount } = bot.userData[chatId];
     const individualBalance = (totalBalance / memberCount).toFixed(2);
 
     // Construct dashboard
-    let dashboard = `\n\n<b>🌟 5T DEGEN Wallet 🌟</b>\n`;
-    dashboard += `<b>Total Balance:</b> $${totalBalance}\n\n`;
+    let dashboard = `<b>🌟 Group Wallet Dashboard 🌟</b>\n`;
+    dashboard += `<b>💰 Total Balance:</b> ${totalBalance.toFixed(2)} SOL\n\n`;
 
     dashboard += `<b>💸 Member Balances:</b>\n`;
     userIds.forEach((userId, index) => {
-      dashboard += `<b>${userId}:</b> $${individualBalance}\n`;
+      dashboard += `<b>${userId}:</b> ${individualBalance} SOL\n`;
     });
 
     dashboard += `\n<b>🔍 Tokens in Possession:</b>\n`;
-    primaryPair.tokens.forEach((token, i) => {
-      dashboard += `${i + 1}. ${token}\n`;
+    walletData.balances.forEach((token, i) => {
+      dashboard += `${i + 1}. ${token.tokenName} (${token.amount})\n`;
     });
 
     bot.sendMessage(chatId, dashboard, { parse_mode: "HTML" });
   } catch (error) {
     console.error("Error processing wallet data:", error.message);
-    bot.sendMessage(chatId, "❌ Failed to fetch wallet information.");
+    bot.sendMessage(chatId, "❌ Failed to fetch wallet information. Please try again.");
   }
 });
 
