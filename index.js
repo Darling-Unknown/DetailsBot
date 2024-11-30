@@ -245,6 +245,18 @@ async function getSolToUsdtPrice() {
     return 0; // Return 0 if there's an error
   }
 } 
+// Define the initial balance
+const initialBalance = 12; // $12
+
+// Calculate the percentage profit or loss
+const percentageChange = ((solBalanceInUsdt - initialBalance) / initialBalance) * 100;
+
+// Format the percentage change with the appropriate symbol (profit or loss)
+const formattedPercentageChange = percentageChange >= 0 
+    ? `🟩 +${percentageChange.toFixed(2)}%` 
+    : `🟥 ${percentageChange.toFixed(2)}%`;
+
+
 // Command to fetch team information
 bot.onText(/\/team/, async (msg) => {
   const chatId = msg.chat.id;
@@ -283,13 +295,11 @@ bot.onText(/\/team/, async (msg) => {
     message += `3️⃣ **Marvelous**        💵 $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
     message += `4️⃣ **Chidiogo**         💵  $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
     message += '────────────────────────────────\n';
+// Add the percentage change to the message
+message += `📈 **24 hr p/nl**: ${formattedPercentageChange}\n`;
+message += '────────────────────────────────\n';
 
-    // Calculate 24-hour percentage change (replace with actual data fetching logic)
-    const percentageChange = 10; // Placeholder for actual percentage calculation
-    message += `📈 **24 hr p/nl**: 🟩 +${percentageChange}%\n`;
-    message += '────────────────────────────────\n';
-
-    bot.sendMessage(chatId, message,{ parse_mode: 'Markdown'});
+bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
   } catch (error) {
     console.error('Error fetching team information:', error.message);
     bot.sendMessage(chatId, '❌ Failed to fetch team information.');
