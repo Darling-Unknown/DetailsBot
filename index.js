@@ -213,6 +213,7 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
   trackedAddresses[chatId] = setInterval(fetchTransactions, 30000);
   fetchTransactions();
 });
+
 // Function to fetch Solana balance from the JSON-RPC
 async function getSolBalance(address) {
   const solanaUrl = 'https://api.mainnet-beta.solana.com';
@@ -232,81 +233,60 @@ async function getSolBalance(address) {
   }
 }
 
-// Function to fetch token balances and their details (name, price, market cap) using JSON-RPC and Dexscreener
-async function getTokenBalances(address) {
-  const solanaUrl = 'https://api.mainnet-beta.solana.com';
-  const data = {
-    jsonrpc: '2.0',
-    id: 1,
-    method: 'getTokenAccountsByOwner',
-    params: [address, { programId: 'So11111111111111111111111111111111111111112' }],
-  };
-
+// Function to fetch the current SOL to USDT price from Dexscreener
+async function getSolToUsdtPrice() {
+  const url = 'https://api.dexscreener.com/latest/dex/pairs/sol/usdt'; // Example API endpoint
   try {
-    const response = await axios.post(solanaUrl, data);
-    const tokenAccounts = response.data.result.value;
-
-    // For each token, fetch the name, price, and market cap from Dexscreener
-    const tokenDetails = await Promise.all(tokenAccounts.map(async (account) => {
-      const tokenAddress = account.account.data.parsed.info.mint;
-      const tokenData = await getTokenDetails(tokenAddress);
-      const amount = account.account.data.parsed.info.tokenAmount.uiAmount;
-      return {
-        name: tokenData.pairs[0]?.baseToken?.name || 'Unknown',
-        amount,
-        price: tokenData.pairs[0]?.priceUsd || 0,
-        marketCap: tokenData.pairs[0]?.fdv || 0,
-      };
-    }));
-
-    return tokenDetails;
+    const response = await axios.get(url);
+    return response.data.pair.priceUsd; // Get SOL price in USDT
   } catch (error) {
-    console.error('Error fetching token balances:', error.message);
-    return [];
+    console.error('Error fetching SOL to USDT price:', error.message);
+    return 0;
   }
 }
 
 // Command to fetch team information
 bot.onText(/\/team/, async (msg) => {
   const chatId = msg.chat.id;
-
   const address = 'BRxrQNzDDTmh8AKFbQffYfTCCGnoxXmm9ydErn95Egbe'; // Example address
 
   try {
     // Get Sol balance
     const solBalance = await getSolBalance(address);
+    
+    // Get SOL to USDT price
+    const solToUsdtPrice = await getSolToUsdtPrice();
+    
+    if (solToUsdtPrice === 0) {
+      bot.sendMessage(chatId, '❌ Error fetching SOL price.');
+      return;
+    }
 
-    // Get token balances and details
-    const tokens = await getTokenBalances(address);
-
-    // Calculate the total in USD (for token holdings)
-    let totalTokensInUSD = 0;
-    tokens.forEach(token => {
-      totalTokensInUSD += token.amount * token.price;
-    });
+    // Convert Sol balance to USDT
+    const solBalanceInUsdt = solBalance * solToUsdtPrice;
 
     // Team share calculations (divide the Sol balance by 4)
-    const solPerMember = solBalance / 4;
+    const solPerMemberInUsdt = solBalanceInUsdt / 4;
 
     // Build the team information message
-    let message = '.......Team Name .......\n';
-    message += `Address: ${address}\n`;
-    message += `Sol Balance: ${solBalance.toFixed(2)} SOL\n`;
-    message += `Tokens in possession: 👍\n`;
+    let message = '🎮 ....... Team Name ....... 🎮\n';
+    message += '────────────────────────────────\n';
+    message += `📍 **Address**: ${address}\n`;
+    message += `💰 **Sol Balance**: ${solBalance.toFixed(2)} SOL 💵 **($${solBalanceInUsdt.toFixed(2)} USDT)**\n`;
+    message += `💎 **Tokens in possession**: 👍\n`;
+    message += '────────────────────────────────\n';
+    message += '👥 **Team Members:**\n';
+    message += '────────────────────────────────\n';
+    message += `1️⃣ **Stephen**           💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
+    message += `2️⃣ **Unknown Web**      💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
+    message += `3️⃣ **Marvelous**        💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
+    message += `4️⃣ **Chidiogo**         💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
+    message += '────────────────────────────────\n';
 
-    tokens.forEach((token, index) => {
-      message += `${index + 1}. ${token.name} (${token.amount.toFixed(2)} tokens) ($${(token.amount * token.price).toFixed(2)} Mcap: $${token.marketCap})\n`;
-    });
-
-    message += '\nTeam Members:\n';
-    message += `Stephen_______ x$ ${(solPerMember * 20).toFixed(2)}\n`;
-    message += `Unknown Web___________ x$ ${(solPerMember * 20).toFixed(2)}\n`;
-    message += `Marvelous _______x$ ${(solPerMember * 20).toFixed(2)}\n`;
-    message += `Chidiogo__________x$ ${(solPerMember * 20).toFixed(2)}\n`;
-
-    // Calculate 24-hour percentage change (example placeholder calculation)
-    const percentageChange = 10; // Replace with actual percentage change logic
-    message += `24 hr p/nl: 🟩${percentageChange}%`;
+    // Calculate 24-hour percentage change (replace with actual data fetching logic)
+    const percentageChange = 10; // Placeholder for actual percentage calculation
+    message += `📈 **24 hr p/nl**: 🟩 +${percentageChange}%\n`;
+    message += '────────────────────────────────\n';
 
     bot.sendMessage(chatId, message);
   } catch (error) {
