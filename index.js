@@ -245,18 +245,6 @@ async function getSolToUsdtPrice() {
   }
 }
 
-// Example usage of the function
-async function example() {
-  const solToUsdtPrice = await getSolToUsdtPrice();
-  if (solToUsdtPrice === 0) {
-    console.log('Failed to fetch SOL price.');
-  } else {
-    console.log(`Current SOL price in USDT: $${solToUsdtPrice}`);
-  }
-}
-
-// Call the example function
-example();
 // Command to fetch team information
 bot.onText(/\/team/, async (msg) => {
   const chatId = msg.chat.id;
