@@ -251,49 +251,59 @@ bot.onText(/\/team/, async (msg) => {
   const chatId = msg.chat.id;
   const address = 'BRxrQNzDDTmh8AKFbQffYfTCCGnoxXmm9ydErn95Egbe'; // Example address
 
-  try {
-    // Get Sol balance
-    const solBalance = await getSolBalance(address);
-    
-    // Get SOL to USDT price
-    const solToUsdtPrice = await getSolToUsdtPrice();
-    
-    if (solToUsdtPrice === 0) {
-      bot.sendMessage(chatId, '❌ Error fetching SOL price.');
-      return;
+  // Function to send team information
+  const sendTeamInfo = async () => {
+    try {
+      // Get Sol balance
+      const solBalance = await getSolBalance(address);
+
+      // Get SOL to USDT price
+      const solToUsdtPrice = await getSolToUsdtPrice();
+
+      if (solToUsdtPrice === 0) {
+        bot.sendMessage(chatId, '❌ Error fetching SOL price.');
+        return;
+      }
+
+      // Convert Sol balance to USDT
+      const solBalanceInUsdt = solBalance * solToUsdtPrice;
+
+      // Team share calculations (divide the Sol balance by 4)
+      const solPerMemberInUsdt = solBalanceInUsdt / 4;
+
+      // Build the team information message in HTML format
+      let message = `
+      <b>🎮 ....... Team Name ....... 🎮</b>
+      <hr>
+      <b>📍 Address</b>: ${address}
+      <br><b>💰 Sol Balance</b>: ${solBalance.toFixed(2)} SOL 💵 <i>($${solBalanceInUsdt.toFixed(2)} USDT)</i>
+      <br><b>💎 Tokens in possession</b>: 👍
+      <hr>
+      <b>👥 Team Members:</b>
+      <hr>
+      <b>1️⃣ Stephen</b> 💵 x$ ${(solPerMemberInUsdt).toFixed(2)}
+      <br><b>2️⃣ Unknown Web</b> 💵 x$ ${(solPerMemberInUsdt).toFixed(2)}
+      <br><b>3️⃣ Marvelous</b> 💵 x$ ${(solPerMemberInUsdt).toFixed(2)}
+      <br><b>4️⃣ Chidiogo</b> 💵 x$ ${(solPerMemberInUsdt).toFixed(2)}
+      <hr>
+      <b>📈 24 hr p/nl</b>: 🟩 +10%
+      <hr>
+      `;
+
+      bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+    } catch (error) {
+      console.error('Error fetching team information:', error.message);
+      bot.sendMessage(chatId, '❌ Failed to fetch team information.');
     }
+  };
 
-    // Convert Sol balance to USDT
-    const solBalanceInUsdt = solBalance * solToUsdtPrice;
+  // Send initial data
+  await sendTeamInfo();
 
-    // Team share calculations (divide the Sol balance by 4)
-    const solPerMemberInUsdt = solBalanceInUsdt / 4;
-
-    // Build the team information message
-    let message = '🎮 ....... Team Name ....... 🎮\n';
-    message += '────────────────────────────────\n';
-    message += `📍 **Address**: ${address}\n`;
-    message += `💰 **Sol Balance**: ${solBalance.toFixed(2)} SOL 💵 **($${solBalanceInUsdt.toFixed(2)} USDT)**\n`;
-    message += `💎 **Tokens in possession**: 👍\n`;
-    message += '────────────────────────────────\n';
-    message += '👥 **Team Members:**\n';
-    message += '────────────────────────────────\n';
-    message += `1️⃣ **Stephen**           💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `2️⃣ **Unknown Web**      💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `3️⃣ **Marvelous**        💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `4️⃣ **Chidiogo**         💵 x$ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += '────────────────────────────────\n';
-
-    // Calculate 24-hour percentage change (replace with actual data fetching logic)
-    const percentageChange = 10; // Placeholder for actual percentage calculation
-    message += `📈 **24 hr p/nl**: 🟩 +${percentageChange}%\n`;
-    message += '────────────────────────────────\n';
-
-    bot.sendMessage(chatId, message);
-  } catch (error) {
-    console.error('Error fetching team information:', error.message);
-    bot.sendMessage(chatId, '❌ Failed to fetch team information.');
-  }
+  // Refresh data every 1 minute (60000 ms)
+  setInterval(async () => {
+    await sendTeamInfo();
+  }, 60000); // 1 minute interval
 });
 // Webhook endpoint
 app.post(`/bot${botToken}`, (req, res) => {
