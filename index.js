@@ -119,6 +119,116 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
   updateInterval = setInterval(updateMessage, 20000);
   updateMessage();
 });
+// Import necessary libraries (existing imports assumed)
+
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  bot.sendMessage(
+    chatId,
+    "Hi! Set up your group's assets dashboard by clicking the button below.",
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "Continue", callback_data: "setup_dashboard" }],
+        ],
+      },
+    }
+  );
+});
+
+// Step 1: Setup Group Members
+bot.on("callback_query", async (query) => {
+  const chatId = query.message.chat.id;
+  const data = query.data;
+
+  if (data === "setup_dashboard") {
+    bot.sendMessage(
+      chatId,
+      "How many users are involved? Select below (1-10).",
+      {
+        reply_markup: {
+          inline_keyboard: Array.from({ length: 10 }, (_, i) => [
+            { text: `${i + 1}`, callback_data: `set_users_${i + 1}` },
+          ]),
+        },
+      }
+    );
+  }
+
+  if (data.startsWith("set_users_")) {
+    const memberCount = parseInt(data.split("_")[2]);
+    bot.sendMessage(
+      chatId,
+      `You selected ${memberCount} members. Please enter their Telegram IDs separated by commas (e.g., 123456, 234567).`
+    );
+
+    bot.once("message", async (response) => {
+      const userIds = response.text.split(",").map((id) => id.trim());
+      bot.sendMessage(
+        chatId,
+        `Members set! Now, connect the group's wallet by using the command:\n\n<code>/g [wallet_address]</code>`,
+        { parse_mode: "HTML" }
+      );
+
+      // Save user IDs for further steps
+      bot.userData = bot.userData || {};
+      bot.userData[chatId] = { userIds, memberCount };
+    });
+  }
+});
+
+// Step 2: Connect Wallet and Fetch Balance
+bot.onText(/\/g (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const walletAddress = match[1].trim();
+
+  if (!walletAddress) {
+    return bot.sendMessage(chatId, "❌ Please provide a valid wallet address.");
+  }
+
+  // Save wallet address for the group
+  bot.userData = bot.userData || {};
+  bot.userData[chatId] = {
+    ...bot.userData[chatId],
+    walletAddress,
+  };
+
+  bot.sendMessage(chatId, "Processing wallet information...");
+
+  try {
+    // Fetch token details using the Dexscreener API
+    const tokenData = await getTokenDetails(walletAddress);
+
+    if (!tokenData || !tokenData.pairs || tokenData.pairs.length === 0) {
+      throw new Error("No data found for the provided wallet.");
+    }
+
+    // Extract balance and calculate individual shares
+    const primaryPair = tokenData.pairs[0];
+    const totalBalance = parseFloat(primaryPair.priceUsd || "0").toFixed(2);
+    const { userIds, memberCount } = bot.userData[chatId];
+    const individualBalance = (totalBalance / memberCount).toFixed(2);
+
+    // Construct dashboard
+    let dashboard = `\n\n<b>🌟 5T DEGEN Wallet 🌟</b>\n`;
+    dashboard += `<b>Total Balance:</b> $${totalBalance}\n\n`;
+
+    dashboard += `<b>💸 Member Balances:</b>\n`;
+    userIds.forEach((userId, index) => {
+      dashboard += `<b>${userId}:</b> $${individualBalance}\n`;
+    });
+
+    dashboard += `\n<b>🔍 Tokens in Possession:</b>\n`;
+    primaryPair.tokens.forEach((token, i) => {
+      dashboard += `${i + 1}. ${token}\n`;
+    });
+
+    bot.sendMessage(chatId, dashboard, { parse_mode: "HTML" });
+  } catch (error) {
+    console.error("Error processing wallet data:", error.message);
+    bot.sendMessage(chatId, "❌ Failed to fetch wallet information.");
+  }
+});
 
 bot.onText(/\/track (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
