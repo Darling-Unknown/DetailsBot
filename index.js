@@ -410,7 +410,7 @@ bot.onText(/\/team/, async (msg) => {
       const tokenInfo = await getTokenInfoFromDexscreener(token.tokenAddress);
 
       if (tokenInfo) {
-        const tokenWorth = token.tokenAmount * parseFloat(tokenInfo.price);
+        const tokenWorth = token.tokenAmount * (tokenInfo.price);
         totalTokenWorthInUsdt += tokenWorth;
         tokensInfo += `🔹 **${tokenInfo.name}**  
                        🪙 **Balance**: ${token.tokenAmount} tokens  
@@ -448,8 +448,8 @@ bot.onText(/\/team/, async (msg) => {
     const initialBalance = 12; // Example initial balance in USDT
     const percentageChange = ((totalBalance - initialBalance) / initialBalance) * 100;
     const formattedPercentageChange = percentageChange >= 0 
-        ? `🟩 +${percentageChange.toFixed(2)}%` 
-        : `🟥 ${percentageChange.toFixed(2)}%`;
+        ? `🟩 +${percentageChange}%` 
+        : `🟥 ${percentageChange}%`;
     message += `📈 **24 hr P&L**: ${formattedPercentageChange}\n`;
     message += '───────────────────────────────';
 
