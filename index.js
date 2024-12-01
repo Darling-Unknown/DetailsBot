@@ -47,7 +47,7 @@ async function getTokenDetails(tokenAddress) {
     throw new Error('Failed to fetch token details from Dexscreener.');
   }
 }
-function createAsciiCard(tokenData) {
+function createTokenCard(tokenData) {
   const primaryPair = tokenData.pairs[0];
   const name = primaryPair.baseToken.name || 'TOKEN NAME';
   const roi = primaryPair.priceChange?.h24 ? `${primaryPair.priceChange.h24}%` : '+0.00%';
@@ -56,27 +56,91 @@ function createAsciiCard(tokenData) {
   const buys = primaryPair.txns?.h24?.buys || 'N/A';
   const sells = primaryPair.txns?.h24?.sells || 'N/A';
 
-  let card = `
-+------------------------------------------------+
-|                  💰 Darlington 🤖                 |
-|------------------------------------------------|
-|  📌 Token Name: ${name.padEnd(30)} |
-|  📈 ROI (24h): ${roi.padEnd(31)} |
-|  💵 Price: ${price.padEnd(34)} |
-|  🌐 Market Cap: ${marketCap.padEnd(28)} |
-|------------------------------------------------|
-|  🚀 Powered By: Palmpay 😏                      |
-|  📞 Contact: 9035751502 👀                     |
-+------------------------------------------------+
-`;
+  // Define card templates
+  const templates = [
+    // Design 1: Modern Dashboard Style
+    `
+==================== DASHBOARD ====================
+🔹 Token Name       : ${name}
+🔹 ROI (24h)        : ${roi}
+🔹 Current Price    : ${price}
+🔹 Total Market Cap : ${marketCap}
+---------------------------------------------------
+🛒 24h Transactions:
+   ✅ Buys          : ${buys}
+   ❌ Sells         : ${sells}
+===================================================
+`,
 
-  card += `
-🔔 Latest Transactions (24h):
-   💚 Buys: ${buys}
-   ❤️ Sells: ${sells}
-`;
+    // Design 2: Summary List
+    `
+*** Darlington Token Summary ***
+--------------------------------
+Token Details:
+  - Name          : ${name}
+  - ROI (24h)     : ${roi}
+  - Price         : ${price}
+  - Market Cap    : ${marketCap}
 
-  return card;
+Activity:
+  - Transactions:
+    💚 Buys  : ${buys}
+    ❤️ Sells : ${sells}
+--------------------------------
+`,
+
+    // Design 3: Detailed Report
+    `
+::::::::::::::::::::::::::::::::::::::::::::::
+::        Darlington Token Report 🤖         ::
+::::::::::::::::::::::::::::::::::::::::::::::
+:: Token Name    : ${name}
+:: ROI (24h)     : ${roi}
+:: Price (USD)   : ${price}
+:: Market Cap    : ${marketCap}
+::::::::::::::::::::::::::::::::::::::::::::::
+:: Transactions (Last 24h):
+   💚 Buys   -> ${buys}
+   ❤️ Sells  -> ${sells}
+::::::::::::::::::::::::::::::::::::::::::::::
+`,
+
+    // Design 4: Sleek Header/Footer
+    `
++---------------------------------------+
+|         Darlington Token Info         |
++---------------------------------------+
+|  Name          : ${name}
+|  ROI (24h)     : ${roi}
+|  Price         : ${price}
+|  Market Cap    : ${marketCap}
++---------------------------------------+
+|  Transactions:                        |
+|   💚 Buys  : ${buys}
+|   ❤️ Sells : ${sells}
++---------------------------------------+
+`,
+
+    // Design 5: Business Report
+    `
+-----------------------------------------
+  📊 Darlington Token Market Overview 🤖
+-----------------------------------------
+  • Name          : ${name}
+  • ROI (24h)     : ${roi}
+  • Price (USD)   : ${price}
+  • Market Cap    : ${marketCap}
+-----------------------------------------
+  🔔 Transaction Summary:
+     - 💚 Buys  : ${buys}
+     - ❤️ Sells : ${sells}
+-----------------------------------------
+`
+  ];
+
+  // Pick a random template
+  const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+  return randomTemplate;
 }
 // Command to fetch token details and display them
 bot.onText(/\/addtoken (.+)/, async (msg, match) => {
