@@ -344,25 +344,38 @@ async function getTokenInfoFromDexscreener(contractAddress) {
   const url = `https://api.dexscreener.com/latest/dex/tokens/${contractAddress}`;
 
   try {
-    const response = await axios.get(url);
-    
-    // Log the entire response to inspect its structure
-    console.log('Dexscreener response:', response.data);
-    
-    // Check if the response contains a 'pair' object
-    if (response.data && response.data.pair) {
-      const tokenData = response.data.pair;
+    // Fetch the token details
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': 'DarlingtonBot/1.0',
+        'Accept': 'application/json',
+      },
+    });
+
+    // Ensure we are checking for the "pairs" array
+    if (response.data && response.data.pairs && response.data.pairs.length > 0) {
+      const primaryPair = response.data.pairs[0];
+      const name = primaryPair.baseToken.name || 'TOKEN NAME';
+      const price = primaryPair.priceUsd ? `$${primaryPair.priceUsd}` : 'N/A';
+      const marketCap = primaryPair.fdv ? `$${primaryPair.fdv}` : 'N/A';
+      const roi = primaryPair.priceChange?.h24 ? `${primaryPair.priceChange.h24}%` : '+0.00%';
+      const buys = primaryPair.txns?.h24?.buys || 'N/A';
+      const sells = primaryPair.txns?.h24?.sells || 'N/A';
+
       return {
-        name: tokenData.baseToken ? tokenData.baseToken.symbol : 'Unknown',
-        price: tokenData.priceUsd || 'N/A',
-        marketCap: tokenData.marketCapUsd || 'N/A',
+        name,
+        price,
+        marketCap,
+        roi,
+        buys,
+        sells,
       };
     } else {
-      console.error('Invalid response structure from Dexscreener: "pair" object missing');
+      console.error('Invalid response structure from Dexscreener: "pairs" object missing or empty');
       return null;
     }
   } catch (error) {
-    console.error('Error fetching token info from Dexscreener:', error.message);
+    console.error('Error fetching token info from Dexscreener:', error.response?.data || error.message);
     return null;
   }
 }
