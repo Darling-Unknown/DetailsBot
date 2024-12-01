@@ -345,6 +345,11 @@ async function getTokenInfoFromDexscreener(contractAddress) {
 
   try {
     const response = await axios.get(url);
+    
+    // Log the entire response to inspect its structure
+    console.log('Dexscreener response:', response.data);
+    
+    // Check if the response contains a 'pair' object
     if (response.data && response.data.pair) {
       const tokenData = response.data.pair;
       return {
@@ -353,7 +358,7 @@ async function getTokenInfoFromDexscreener(contractAddress) {
         marketCap: tokenData.marketCapUsd || 'N/A',
       };
     } else {
-      console.error('Invalid response structure from Dexscreener');
+      console.error('Invalid response structure from Dexscreener: "pair" object missing');
       return null;
     }
   } catch (error) {
@@ -361,7 +366,6 @@ async function getTokenInfoFromDexscreener(contractAddress) {
     return null;
   }
 }
-
 // Command to fetch team information
 bot.onText(/\/team/, async (msg) => {
   const chatId = msg.chat.id;
