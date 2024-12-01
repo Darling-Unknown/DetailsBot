@@ -340,18 +340,23 @@ async function getSolanaTokenBalances(address) {
     return [];
   }
 }
-
-// Function to fetch token information from Dexscreener using the contract address
 async function getTokenInfoFromDexscreener(contractAddress) {
   const url = `https://api.dexscreener.com/latest/dex/tokens/${contractAddress}`;
 
   try {
     const response = await axios.get(url);
+
+    // Check if the response contains the expected structure
+    if (!response.data || !response.data.pair) {
+      console.error('Invalid response structure from Dexscreener');
+      return null;
+    }
+
     const tokenData = response.data.pair;
     return {
-      name: tokenData.baseToken.symbol,
-      price: tokenData.priceUsd,
-      marketCap: tokenData.marketCapUsd,
+      name: tokenData.baseToken?.symbol || 'Unknown Token',
+      price: tokenData.priceUsd || 0,
+      marketCap: tokenData.marketCapUsd || 'N/A',
     };
   } catch (error) {
     console.error('Error fetching token info from Dexscreener:', error.message);
