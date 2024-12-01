@@ -47,33 +47,37 @@ async function getTokenDetails(tokenAddress) {
     throw new Error('Failed to fetch token details from Dexscreener.');
   }
 }
-
-// Function to format token details into a large ASCII card
 function createAsciiCard(tokenData) {
   const primaryPair = tokenData.pairs[0];
-  let card = '+------------------------------------------+\n';
-  card += '|             Darlington🤖               |\n';
-  card += '|------------------------------------------|\n';
-  card += `|  Token Name: ${primaryPair.baseToken.name || 'TOKEN NAME'}               |\n`;
-  card += `|  ROI (24h): ${primaryPair.priceChange.h24 + '%' || '+0.00%'}                 |\n`;
-  card += `|  Price: $${primaryPair.priceUsd || 'N/A'}                               |\n`;
-  card += `|  Market Cap: $${primaryPair.fdv || 'N/A'}                              |\n`;
-  card += '|------------------------------------------|\n';
-  card += '|               Support: Palmpay 😏         |\n';
-  card += '|               Contact: 9035751502 👀      |\n';
-  card += '+------------------------------------------+\n';
+  const name = primaryPair.baseToken.name || 'TOKEN NAME';
+  const roi = primaryPair.priceChange?.h24 ? `${primaryPair.priceChange.h24}%` : '+0.00%';
+  const price = primaryPair.priceUsd ? `$${primaryPair.priceUsd}` : 'N/A';
+  const marketCap = primaryPair.fdv ? `$${primaryPair.fdv}` : 'N/A';
+  const buys = primaryPair.txns?.h24?.buys || 'N/A';
+  const sells = primaryPair.txns?.h24?.sells || 'N/A';
 
-  if (primaryPair.txns?.h24?.buys && primaryPair.txns?.h24?.sells) {
-    card += `\n    🔔 Latest Transactions:\n`;
-    card += `    💚 Buys: ${primaryPair.txns.h24.buys}\n`;
-    card += `    ❤️ Sells: ${primaryPair.txns.h24.sells}\n`;
-  } else {
-    card += '\n    🔔 No recent transactions found.\n';
-  }
+  let card = `
++------------------------------------------------+
+|                  💰 Darlington 🤖                 |
+|------------------------------------------------|
+|  📌 Token Name: ${name.padEnd(30)} |
+|  📈 ROI (24h): ${roi.padEnd(31)} |
+|  💵 Price: ${price.padEnd(34)} |
+|  🌐 Market Cap: ${marketCap.padEnd(28)} |
+|------------------------------------------------|
+|  🚀 Powered By: Palmpay 😏                      |
+|  📞 Contact: 9035751502 👀                     |
++------------------------------------------------+
+`;
+
+  card += `
+🔔 Latest Transactions (24h):
+   💚 Buys: ${buys}
+   ❤️ Sells: ${sells}
+`;
 
   return card;
 }
-
 // Command to fetch token details and display them
 bot.onText(/\/addtoken (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
