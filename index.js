@@ -413,37 +413,35 @@ bot.onText(/\/team/, async (msg) => {
         ? `🟩 +${percentageChange.toFixed(2)}%` 
         : `🟥 ${percentageChange.toFixed(2)}%`;
    const message = `
-██████╗ ███████╗████████╗    5T DEGEN® PORTFOLIO    
-██╔══██╗██╔════╝╚══██╔══╝   **Financial Data**  
-██████╔╝█████╗     ██║     ------------------------  
-██╔═══╝ ██╔══╝     ██║      🟢 **Wallet Address**:  
-██║     ███████╗   ██║         \`${address}\`  
-╚═╝     ╚══════╝   ╚═╝
+╔═══════════════ 5T DEGEN® ═══════════════╗  
+   💳 **Wallet Address**:  
+      \`${address}\`
 
-💰 **Solana Holdings**:  
-   🚀 ${solBalance.toFixed(3)} SOL  
-   💵 ($${solBalanceInUsdt.toFixed(2)} USDT)  
+💰 **Solana Balance**:  
+   • **${solBalance.toFixed(2)} SOL**  
+   • 💵 ($${solBalanceInUsdt.toFixed(2)} USDT)
 
-💡 **Portfolio Worth**:  
-   💰 **$${totalBalance}**  
+📊 **Portfolio Total Worth**:  
+   • **$${totalBalance}**  
 
-═══════════════════════════════  
-👥 **Team Earnings Breakdown**:  
-   1️⃣ Stephen: $${solPerMemberInUsdt}  
-   2️⃣ Unknown Web: $${solPerMemberInUsdt}  
-   3️⃣ Marvelous: $${solPerMemberInUsdt}  
-   4️⃣ Chidiogo: $${solPerMemberInUsdt}  
+═══════════════════════════════════════  
+👥 **Team Distribution**:  
+   1️⃣ **Stephen**: 💵 $${solPerMemberInUsdt}  
+   2️⃣ **Unknown Web**: 💵 $${solPerMemberInUsdt}  
+   3️⃣ **Marvelous**: 💵 $${solPerMemberInUsdt}  
+   4️⃣ **Chidiogo**: 💵 $${solPerMemberInUsdt}  
 
-📈 **24H PERFORMANCE**: 🔄 ${formattedPercentageChange}  
+═══════════════════════════════════════  
+📈 **24H Performance**:  
+   🔄 ${formattedPercentageChange}  
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  
-💎 **Token Holdings**:  
+═══════════════════════════════════════  
+💎 **Tokens in Possession**:  
 ${tokensInfo}
+  
 
-
-🚀 **Powered by Unknown** 🚀  
-🔗 *Palmpay---**9035751502**.*  
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  
+Palmpay--- **9035751502**
+╚═════════════════ Powered by DEGEN® ═══════════════╝  
 `;
 bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });  } catch (error) {
     console.error('Error fetching team information:', error.message);
