@@ -345,19 +345,17 @@ async function getTokenInfoFromDexscreener(contractAddress) {
 
   try {
     const response = await axios.get(url);
-
-    // Check if the response contains the expected structure
-    if (!response.data || !response.data.pair) {
+    if (response.data && response.data.pair) {
+      const tokenData = response.data.pair;
+      return {
+        name: tokenData.baseToken ? tokenData.baseToken.symbol : 'Unknown',
+        price: tokenData.priceUsd || 'N/A',
+        marketCap: tokenData.marketCapUsd || 'N/A',
+      };
+    } else {
       console.error('Invalid response structure from Dexscreener');
       return null;
     }
-
-    const tokenData = response.data.pair;
-    return {
-      name: tokenData.baseToken?.symbol || 'Unknown Token',
-      price: tokenData.priceUsd || 0,
-      marketCap: tokenData.marketCapUsd || 'N/A',
-    };
   } catch (error) {
     console.error('Error fetching token info from Dexscreener:', error.message);
     return null;
