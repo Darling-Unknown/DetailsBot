@@ -397,7 +397,12 @@ bot.onText(/\/team/, async (msg) => {
 
     const totalBalance = (solBalanceInUsdt + totalTokenWorthInUsdt).toFixed(2);
     const solPerMemberInUsdt = (solBalanceInUsdt / 4).toFixed(2);
-
+    // Add the percentage change to the message
+    const initialBalance = 12; // $12
+    const percentageChange = ((solBalanceInUsdt - initialBalance) / initialBalance) * 100;
+    const formattedPercentageChange = percentageChange >= 0 
+        ? `🟩 +${percentageChange.toFixed(2)}%` 
+        : `🟥 ${percentageChange.toFixed(2)}%`;
     const message = `
                5T DEGEN®          
 ────────────────────────────────
@@ -414,7 +419,7 @@ ${tokensInfo}
 3️⃣ **Marvelous**        💵 $${solPerMemberInUsdt}
 4️⃣ **Chidiogo**         💵 $${solPerMemberInUsdt}
 ────────────────────────────────
-📈 **24 hr p/nl**: 🟩 +${(((solBalanceInUsdt - 12) / 12) * 100).toFixed(2)}%
+📈 **24 hr p/nl**: ${formattedPercentageChange}
 ────────────────────────────────
 `;
 
