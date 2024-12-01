@@ -404,14 +404,19 @@ bot.onText(/\/team/, async (msg) => {
 
     let tokensInfo = '';
     let totalTokenWorthInUsdt = 0;
+
     for (let token of tokens) {
       // Get token details from Dexscreener using the contract address
       const tokenInfo = await getTokenInfoFromDexscreener(token.tokenAddress);
 
       if (tokenInfo) {
-        const tokenWorth = (token.tokenAmount * tokenInfo.price).toFixed(2);
-        totalTokenWorthInUsdt += token.tokenAmount * tokenInfo.price;
-        tokensInfo += `🔹 **${tokenInfo.name}** (${token.tokenAmount} tokens) 🪙 Worth: $${tokenWorth} 📉 Price: $${tokenInfo.price} 📊 Market Cap: $${tokenInfo.marketCap}\n`;
+        const tokenWorth = token.tokenAmount * parseFloat(tokenInfo.price);
+        totalTokenWorthInUsdt += tokenWorth;
+        tokensInfo += `🔹 **${tokenInfo.name}**  
+                       🪙 **Balance**: ${token.tokenAmount.toFixed(2)} tokens  
+                       📉 **Price**: $${parseFloat(tokenInfo.price).toFixed(2)}  
+                       💰 **Worth**: $${tokenWorth.toFixed(2)}  
+                       📊 **Market Cap**: ${tokenInfo.marketCap}\n\n`;
       }
     }
 
@@ -419,41 +424,42 @@ bot.onText(/\/team/, async (msg) => {
     const totalBalance = (solBalanceInUsdt + totalTokenWorthInUsdt).toFixed(2);
 
     // Team share calculations (divide the Sol balance by 4)
-    const solPerMemberInUsdt = solBalanceInUsdt / 4;
+    const solPerMemberInUsdt = (totalBalance / 4).toFixed(2);
 
     // Build the team information message
-    let message = '               5T DEGEN®          \n';
-    message += '────────────────────────────────\n';
-    message += `📍 **Address**: ${address}\n`;
-    message += `💰 **Sol Balance**: ${solBalance.toFixed(2)} SOL 💵 **($${solBalanceInUsdt.toFixed(2)} USDT)**\n`;
-    message += `💰 **Total Balance**: $${totalBalance}\n`;  // Added Total Balance
-    message += `💎 **Tokens in possession**: 👍\n`
-    message +=  `${tokensInfo}\n`;
-    message += '────────────────────────────────\n';
-    message += '👥 **Team Members:**\n';
-    message += '\n';
-    message += `1️⃣ **Stephen**           💵 $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `2️⃣ **Unknown Web**      💵 $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `3️⃣ **Marvelous**        💵 $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `4️⃣ **Chidiogo**         💵  $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += '────────────────────────────────\n';
-    
-    // Add the percentage change to the message
-    const initialBalance = 12; // $12
-    const percentageChange = ((solBalanceInUsdt - initialBalance) / initialBalance) * 100;
+    let message = `*🏦 5T DEGEN® Team Portfolio 🏦*\n`;
+    message += '───────────────────────────────\n';
+    message += `📍 **Wallet Address**: \`${address}\`\n`;
+    message += `💰 **SOL Balance**: ${solBalance.toFixed(2)} SOL  
+                 💵 (Worth: $${solBalanceInUsdt.toFixed(2)} USDT)\n\n`;
+    message += `💎 **Total Token Worth**: $${totalTokenWorthInUsdt.toFixed(2)} USDT\n\n`;
+    message += `💰 **Total Portfolio Value**: $${totalBalance}\n`;
+    message += '───────────────────────────────\n';
+    message += `*📊 Tokens in Wallet:*\n\n${tokensInfo}`;
+    message += '───────────────────────────────\n';
+    message += '*👥 Team Members Share:*\n\n';
+    message += `1️⃣ **Stephen**        💵 $${solPerMemberInUsdt}\n`;
+    message += `2️⃣ **Unknown Web**    💵 $${solPerMemberInUsdt}\n`;
+    message += `3️⃣ **Marvelous**      💵 $${solPerMemberInUsdt}\n`;
+    message += `4️⃣ **Chidiogo**       💵 $${solPerMemberInUsdt}\n`;
+    message += '───────────────────────────────\n';
+
+    // Add percentage change calculation
+    const initialBalance = 12; // Example initial balance in USDT
+    const percentageChange = ((totalBalance - initialBalance) / initialBalance) * 100;
     const formattedPercentageChange = percentageChange >= 0 
         ? `🟩 +${percentageChange.toFixed(2)}%` 
         : `🟥 ${percentageChange.toFixed(2)}%`;
-    message += `📈 **24 hr p/nl**: ${formattedPercentageChange}\n`;
-    message += '────────────────────────────────\n';
+    message += `📈 **24 hr P&L**: ${formattedPercentageChange}\n`;
+    message += '───────────────────────────────';
 
+    // Send the message
     bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
   } catch (error) {
     console.error('Error fetching team information:', error.message);
     bot.sendMessage(chatId, '❌ Failed to fetch team information.');
   }
 });
-
 // Webhook endpoint
 app.post(`/bot${botToken}`, (req, res) => {
   bot.processUpdate(req.body);
