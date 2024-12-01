@@ -391,7 +391,14 @@ bot.onText(/\/team/, async (msg) => {
       if (tokenInfo) {
         const tokenWorth = (token.tokenAmount * tokenInfo.price);
         totalTokenWorthInUsdt += parseFloat(tokenWorth);
-        tokensInfo += `🔹 **${tokenInfo.name}** (${token.tokenAmount} tokens)\n   🪙 **Worth**: $${tokenWorth}  |  📉 **Price**: $${tokenInfo.price}\n   📊 **Market Cap**: ${tokenInfo.marketCap}  |  🔄 **ROI**: ${tokenInfo.roi}\n\n`;
+        tokensInfo += `
+🔹 **${tokenInfo.name}** 
+   💰 **Amount**: ${token.tokenAmount} 
+   🪙 **Value**: $${tokenWorth}  
+   📉 **Price**: $${tokenInfo.price}  
+   📊 **Market Cap**: ${tokenInfo.marketCap}  
+   🔄 **ROI**: ${tokenInfo.roi}  
+\n`;
       }
     }
 
@@ -404,27 +411,32 @@ bot.onText(/\/team/, async (msg) => {
         ? `🟩 +${percentageChange.toFixed(2)}%` 
         : `🟥 ${percentageChange.toFixed(2)}%`;
     const message = `
-               5T DEGEN®          
-────────────────────────────────
-📍 **Address**: ${address}
-💰 **Sol Balance**: ${solBalance.toFixed(2)} SOL  
-   💵 **($${solBalanceInUsdt.toFixed(2)} USDT)**
-💎 **Tokens in possession**:  
+   **5T DEGEN® Portfolio**  
+──────────────────────────────  
+🏠 **Address**: ${address}  
+💰 **Solana Balance**: ${solBalance.toFixed(2)} SOL  
+💵 **Value**: $${solBalanceInUsdt.toFixed(2)} USDT  
+
+💎 **Tokens Owned**:  
 ${tokensInfo}
-💰 **Total Balance**: $${totalBalance}
-────────────────────────────────
-👥 **Team Members:**
-1️⃣ **Stephen**           💵 $${solPerMemberInUsdt}
-2️⃣ **Unknown Web**      💵 $${solPerMemberInUsdt}
-3️⃣ **Marvelous**        💵 $${solPerMemberInUsdt}
-4️⃣ **Chidiogo**         💵 $${solPerMemberInUsdt}
-────────────────────────────────
-📈 **24 hr p/nl**: ${formattedPercentageChange}
-────────────────────────────────
+
+📊 **Portfolio Worth**: **$${totalBalance}**
+
+──────────────────────────────  
+👥 **Team Profit Share**:  
+1️⃣ **Stephen**: 💵 $${solPerMemberInUsdt}  
+2️⃣ **Unknown Web**: 💵 $${solPerMemberInUsdt}  
+3️⃣ **Marvelous**: 💵 $${solPerMemberInUsdt}  
+4️⃣ **Chidiogo**: 💵 $${solPerMemberInUsdt}  
+
+──────────────────────────────  
+📈 **24-Hour Performance**:  
+📊 ${formattedPercentageChange}  
+
+🛠️ Powered by Unknown Analytics.  
 `;
 
-    bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
-  } catch (error) {
+bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });  } catch (error) {
     console.error('Error fetching team information:', error.message);
     bot.sendMessage(chatId, '❌ Failed to fetch team information.');
   }
