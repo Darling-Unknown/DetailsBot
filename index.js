@@ -413,9 +413,9 @@ bot.onText(/\/team/, async (msg) => {
         const tokenWorth = token.tokenAmount * parseFloat(tokenInfo.price);
         totalTokenWorthInUsdt += tokenWorth;
         tokensInfo += `🔹 **${tokenInfo.name}**  
-                       🪙 **Balance**: ${token.tokenAmount.toFixed(2)} tokens  
-                       📉 **Price**: $${parseFloat(tokenInfo.price).toFixed(2)}  
-                       💰 **Worth**: $${tokenWorth.toFixed(2)}  
+                       🪙 **Balance**: ${token.tokenAmount} tokens  
+                       📉 **Price**: $${tokenInfo.price}  
+                       💰 **Worth**: $${tokenWorth}  
                        📊 **Market Cap**: ${tokenInfo.marketCap}\n\n`;
       }
     }
