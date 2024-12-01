@@ -409,7 +409,7 @@ bot.onText(/\/team/, async (msg) => {
       // Get token details from Dexscreener using the contract address
       const tokenInfo = await getTokenInfoFromDexscreener(token.tokenAddress);
 
-      if (tokenInfo) {
+      if (tokenInfo.price) {
         const tokenWorth = token.tokenAmount * (tokenInfo.price);
         totalTokenWorthInUsdt += tokenWorth;
         tokensInfo += `🔹 **${tokenInfo.name}**  
