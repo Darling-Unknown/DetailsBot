@@ -314,7 +314,6 @@ async function getSolToUsdtPrice() {
     return 0; // Return 0 if there's an error
   }
 }
-
 // Function to fetch token balances and contract addresses from a Solana wallet
 async function getSolanaTokenBalances(address) {
   const solanaUrl = 'https://api.mainnet-beta.solana.com';
@@ -322,12 +321,17 @@ async function getSolanaTokenBalances(address) {
     jsonrpc: '2.0',
     id: 1,
     method: 'getTokenAccountsByOwner',
-    params: [address, { programId: 'TokenkegQfeZyiNwAJbN6HTJp9FEg72QWe1fcmg5dFw8' }, { encoding: 'jsonParsed' }],
+    params: [
+      address,
+      { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
+      { encoding: 'jsonParsed' }
+    ],
   };
 
   try {
     const response = await axios.post(solanaUrl, data);
-    return response.data.result.map(account => ({
+    const accounts = response.data.result.value;
+    return accounts.map(account => ({
       tokenAmount: account.account.data.parsed.info.tokenAmount.uiAmount,
       tokenAddress: account.account.data.parsed.info.mint,
     }));
