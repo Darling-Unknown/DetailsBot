@@ -161,7 +161,8 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
         throw new Error('No data found for the provided token.');
       }
 
-      const asciiCard = createAsciiCard(tokenData);
+      // Use the new createTokenCard function
+      const tokenCard = createTokenCard(tokenData);
 
       const options = {
         parse_mode: 'HTML',
@@ -177,7 +178,8 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
         },
       };
 
-      const sentMessage = await bot.sendMessage(chatId, `<pre>${asciiCard}</pre>`, options);
+      // Send the token card
+      const sentMessage = await bot.sendMessage(chatId, `<pre>${tokenCard}</pre>`, options);
       tokenMessageId = sentMessage.message_id;
     } catch (error) {
       console.error('Error updating token details:', error.message);
@@ -188,7 +190,6 @@ bot.onText(/\/addtoken (.+)/, async (msg, match) => {
   updateInterval = setInterval(updateMessage, 20000);
   updateMessage();
 });
-
 bot.onText(/\/track (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const address = match[1].trim();
