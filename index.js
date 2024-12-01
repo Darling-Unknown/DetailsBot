@@ -282,8 +282,6 @@ bot.onText(/\/track (.+)/, async (msg, match) => {
   trackedAddresses[chatId] = setInterval(fetchTransactions, 30000);
   fetchTransactions();
 });
-
-
 // Function to fetch Solana balance from the JSON-RPC
 async function getSolBalance(address) {
   const solanaUrl = 'https://api.mainnet-beta.solana.com';
@@ -305,16 +303,17 @@ async function getSolBalance(address) {
 
 // Function to fetch the current SOL to USDT price from CoinGecko
 async function getSolToUsdtPrice() {
-  const url = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd'; // CoinGecko endpoint for SOL to USD
+  const url = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd';
 
   try {
     const response = await axios.get(url);
-    return response.data.solana.usd; // Get SOL price in USD (USDT is pegged 1:1 with USD)
+    return response.data.solana.usd;
   } catch (error) {
     console.error('Error fetching SOL to USDT price:', error.message);
-    return 0; // Return 0 if there's an error
+    return 0;
   }
 }
+
 // Function to fetch token balances and contract addresses from a Solana wallet
 async function getSolanaTokenBalances(address) {
   const solanaUrl = 'https://api.mainnet-beta.solana.com';
@@ -341,55 +340,38 @@ async function getSolanaTokenBalances(address) {
     return [];
   }
 }
+
+// Function to fetch token details from Dexscreener
 async function getTokenInfoFromDexscreener(contractAddress) {
   const url = `https://api.dexscreener.com/latest/dex/tokens/${contractAddress}`;
 
   try {
-    // Fetch the token details
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'DarlingtonBot/1.0',
-        'Accept': 'application/json',
-      },
-    });
-
-    // Ensure we are checking for the "pairs" array
-    if (response.data && response.data.pairs && response.data.pairs.length > 0) {
+    const response = await axios.get(url);
+    if (response.data?.pairs?.length > 0) {
       const primaryPair = response.data.pairs[0];
-      const name = primaryPair.baseToken.name || 'TOKEN NAME';
-      const price = primaryPair.priceUsd ? `$${primaryPair.priceUsd}` : 'N/A';
-      const marketCap = primaryPair.fdv ? `$${primaryPair.fdv}` : 'N/A';
-      const roi = primaryPair.priceChange?.h24 ? `${primaryPair.priceChange.h24}%` : '+0.00%';
-      const buys = primaryPair.txns?.h24?.buys || 'N/A';
-      const sells = primaryPair.txns?.h24?.sells || 'N/A';
-
       return {
-        name,
-        price,
-        marketCap,
-        roi,
-        buys,
-        sells,
+        name: primaryPair.baseToken.name || 'TOKEN NAME',
+        price: parseFloat(primaryPair.priceUsd || '0'),
+        marketCap: primaryPair.fdv ? `$${primaryPair.fdv}` : 'N/A',
+        roi: primaryPair.priceChange?.h24 || '+0.00%',
+        buys: primaryPair.txns?.h24?.buys || 'N/A',
+        sells: primaryPair.txns?.h24?.sells || 'N/A',
       };
-    } else {
-      console.error('Invalid response structure from Dexscreener: "pairs" object missing or empty');
-      return null;
     }
+    return null;
   } catch (error) {
-    console.error('Error fetching token info from Dexscreener:', error.response?.data || error.message);
+    console.error('Error fetching token info from Dexscreener:', error.message);
     return null;
   }
 }
+
 // Command to fetch team information
 bot.onText(/\/team/, async (msg) => {
   const chatId = msg.chat.id;
-  const address = 'BRxrQNzDDTmh8AKFbQffYfTCCGnoxXmm9ydErn95Egbe'; // Example address
+  const address = 'BRxrQNzDDTmh8AKFbQffYfTCCGnoxXmm9ydErn95Egbe';
 
   try {
-    // Get Sol balance
     const solBalance = await getSolBalance(address);
-
-    // Get SOL to USDT price
     const solToUsdtPrice = await getSolToUsdtPrice();
 
     if (solToUsdtPrice === 0) {
@@ -397,56 +379,44 @@ bot.onText(/\/team/, async (msg) => {
       return;
     }
 
-    // Convert Sol balance to USDT
     const solBalanceInUsdt = solBalance * solToUsdtPrice;
-
-    // Get token balances and their contract addresses
     const tokens = await getSolanaTokenBalances(address);
 
     let tokensInfo = '';
     let totalTokenWorthInUsdt = 0;
+
     for (let token of tokens) {
-      // Get token details from Dexscreener using the contract address
       const tokenInfo = await getTokenInfoFromDexscreener(token.tokenAddress);
 
       if (tokenInfo) {
         const tokenWorth = (token.tokenAmount * tokenInfo.price).toFixed(2);
-        totalTokenWorthInUsdt += token.tokenAmount * tokenInfo.price;
-        tokensInfo += `🔹 **${tokenInfo.name}** (${token.tokenAmount} tokens) 🪙 Worth: $${tokenWorth} 📉 Price: $${tokenInfo.price} 📊 Market Cap: $${tokenInfo.marketCap}\n`;
+        totalTokenWorthInUsdt += parseFloat(tokenWorth);
+        tokensInfo += `🔹 **${tokenInfo.name}** (${token.tokenAmount.toFixed(2)} tokens)\n   🪙 **Worth**: $${tokenWorth}  |  📉 **Price**: $${tokenInfo.price.toFixed(2)}\n   📊 **Market Cap**: ${tokenInfo.marketCap}  |  🔄 **ROI**: ${tokenInfo.roi}\n\n`;
       }
     }
 
-    // Calculate the total balance (Sol balance + tokens worth in USDT)
     const totalBalance = (solBalanceInUsdt + totalTokenWorthInUsdt).toFixed(2);
+    const solPerMemberInUsdt = (solBalanceInUsdt / 4).toFixed(2);
 
-    // Team share calculations (divide the Sol balance by 4)
-    const solPerMemberInUsdt = solBalanceInUsdt / 4;
-
-    // Build the team information message
-    let message = '               5T DEGEN®          \n';
-    message += '────────────────────────────────\n';
-    message += `📍 **Address**: ${address}\n`;
-    message += `💰 **Sol Balance**: ${solBalance.toFixed(2)} SOL 💵 **($${solBalanceInUsdt.toFixed(2)} USDT)**\n`;
-    message += `💰 **Total Balance**: $${totalBalance}\n`;  // Added Total Balance
-    message += `💎 **Tokens in possession**: 👍\n`
-    message +=  `${tokensInfo}\n`;
-    message += '────────────────────────────────\n';
-    message += '👥 **Team Members:**\n';
-    message += '\n';
-    message += `1️⃣ **Stephen**           💵 $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `2️⃣ **Unknown Web**      💵 $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `3️⃣ **Marvelous**        💵 $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += `4️⃣ **Chidiogo**         💵  $ ${(solPerMemberInUsdt).toFixed(2)}\n`;
-    message += '────────────────────────────────\n';
-
-    // Add the percentage change to the message
-    const initialBalance = 12; // $12
-    const percentageChange = ((solBalanceInUsdt - initialBalance) / initialBalance) * 100;
-    const formattedPercentageChange = percentageChange >= 0 
-        ? `🟩 +${percentageChange.toFixed(2)}%` 
-        : `🟥 ${percentageChange.toFixed(2)}%`;
-    message += `📈 **24 hr p/nl**: ${formattedPercentageChange}\n`;
-    message += '────────────────────────────────\n';
+    const message = `
+               5T DEGEN®          
+────────────────────────────────
+📍 **Address**: ${address}
+💰 **Sol Balance**: ${solBalance.toFixed(2)} SOL  
+   💵 **($${solBalanceInUsdt.toFixed(2)} USDT)**
+💎 **Tokens in possession**:  
+${tokensInfo}
+💰 **Total Balance**: $${totalBalance}
+────────────────────────────────
+👥 **Team Members:**
+1️⃣ **Stephen**           💵 $${solPerMemberInUsdt}
+2️⃣ **Unknown Web**      💵 $${solPerMemberInUsdt}
+3️⃣ **Marvelous**        💵 $${solPerMemberInUsdt}
+4️⃣ **Chidiogo**         💵 $${solPerMemberInUsdt}
+────────────────────────────────
+📈 **24 hr p/nl**: 🟩 +${(((solBalanceInUsdt - 12) / 12) * 100).toFixed(2)}%
+────────────────────────────────
+`;
 
     bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
   } catch (error) {
