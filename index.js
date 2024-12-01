@@ -368,7 +368,7 @@ async function getTokenInfoFromDexscreener(contractAddress) {
 // Command to fetch team information
 bot.onText(/\/team/, async (msg) => {
   const chatId = msg.chat.id;
-  const address = 'A8sKWuSHaDQRF1KC1AAE5TuCe3VHcEg7WfeNjieDaHbN';
+  const address = 'BRxrQNzDDTmh8AKFbQffYfTCCGnoxXmm9ydErn95Egbe';
 
   try {
     const solBalance = await getSolBalance(address);
