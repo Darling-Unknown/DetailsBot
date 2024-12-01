@@ -421,18 +421,18 @@ bot.onText(/\/team/, async (msg) => {
     }
 
     // Calculate the total balance (Sol balance + tokens worth in USDT)
-    const totalBalance = (solBalanceInUsdt + totalTokenWorthInUsdt).toFixed(2);
+    const totalBalance = (solBalanceInUsdt + totalTokenWorthInUsdt);
 
     // Team share calculations (divide the Sol balance by 4)
-    const solPerMemberInUsdt = (totalBalance / 4).toFixed(2);
+    const solPerMemberInUsdt = (totalBalance / 4);
 
     // Build the team information message
     let message = `*🏦 5T DEGEN® Team Portfolio 🏦*\n`;
     message += '───────────────────────────────\n';
     message += `📍 **Wallet Address**: \`${address}\`\n`;
-    message += `💰 **SOL Balance**: ${solBalance.toFixed(2)} SOL  
-                 💵 (Worth: $${solBalanceInUsdt.toFixed(2)} USDT)\n\n`;
-    message += `💎 **Total Token Worth**: $${totalTokenWorthInUsdt.toFixed(2)} USDT\n\n`;
+    message += `💰 **SOL Balance**: ${solBalance} SOL  
+                 💵 (Worth: $${solBalanceInUsdt} USDT)\n\n`;
+    message += `💎 **Total Token Worth**: $${totalTokenWorthInUsdt} USDT\n\n`;
     message += `💰 **Total Portfolio Value**: $${totalBalance}\n`;
     message += '───────────────────────────────\n';
     message += `*📊 Tokens in Wallet:*\n\n${tokensInfo}`;
