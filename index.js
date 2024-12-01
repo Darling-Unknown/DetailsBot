@@ -368,7 +368,7 @@ async function getTokenInfoFromDexscreener(contractAddress) {
 // Command to fetch team information
 bot.onText(/\/team/, async (msg) => {
   const chatId = msg.chat.id;
-  const address = 'BRxrQNzDDTmh8AKFbQffYfTCCGnoxXmm9ydErn95Egbe';
+  const address = 'A8sKWuSHaDQRF1KC1AAE5TuCe3VHcEg7WfeNjieDaHbN';
 
   try {
     const solBalance = await getSolBalance(address);
@@ -389,9 +389,9 @@ bot.onText(/\/team/, async (msg) => {
       const tokenInfo = await getTokenInfoFromDexscreener(token.tokenAddress);
 
       if (tokenInfo) {
-        const tokenWorth = (token.tokenAmount * tokenInfo.price).toFixed(2);
+        const tokenWorth = (token.tokenAmount * tokenInfo.price);
         totalTokenWorthInUsdt += parseFloat(tokenWorth);
-        tokensInfo += `🔹 **${tokenInfo.name}** (${token.tokenAmount.toFixed(2)} tokens)\n   🪙 **Worth**: $${tokenWorth}  |  📉 **Price**: $${tokenInfo.price.toFixed(2)}\n   📊 **Market Cap**: ${tokenInfo.marketCap}  |  🔄 **ROI**: ${tokenInfo.roi}\n\n`;
+        tokensInfo += `🔹 **${tokenInfo.name}** (${token.tokenAmount} tokens)\n   🪙 **Worth**: $${tokenWorth}  |  📉 **Price**: $${tokenInfo.price}\n   📊 **Market Cap**: ${tokenInfo.marketCap}  |  🔄 **ROI**: ${tokenInfo.roi}\n\n`;
       }
     }
 
