@@ -407,7 +407,7 @@ bot.onText(/\/team/, async (msg) => {
 
     for (let token of tokens) {
       // Get token details from Dexscreener using the contract address
-      const tokenInfo = await getTokenInfoFromDexscreener(token.tokenAddress);
+      const tokenInfo = await getTokenInfoFromDexscreener(address);
 
       if (tokenInfo.price) {
         const tokenWorth = token.tokenAmount * (tokenInfo.price);
@@ -421,10 +421,10 @@ bot.onText(/\/team/, async (msg) => {
     }
 
     // Calculate the total balance (Sol balance + tokens worth in USDT)
-    const totalBalance = (solBalanceInUsdt + totalTokenWorthInUsdt);
+    const totalBalance = ({solBalanceInUsdt} + {totalTokenWorthInUsdt});
 
     // Team share calculations (divide the Sol balance by 4)
-    const solPerMemberInUsdt = (totalBalance / 4);
+    const solPerMemberInUsdt = ({solBalanceInUsdt} / 4);
 
     // Build the team information message
     let message = `*🏦 5T DEGEN® Team Portfolio 🏦*\n`;
